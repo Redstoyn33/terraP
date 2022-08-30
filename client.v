@@ -2,12 +2,13 @@ import net
 import time { ticks }
 
 struct Client {
-	out chan PacS2C = chan PacS2C{cap: 3}
-	inp chan PacC2S = chan PacC2S{cap: 1}
+	out chan PacS2C = chan PacS2C{cap: 5}
+	inp chan PacC2S = chan PacC2S{cap: 5}
 mut:
-	con &net.TcpConn
-	last_responce   i64
-	close bool
+	con           &net.TcpConn
+	last_responce i64
+	close         bool
+	player        Player
 }
 
 fn (mut c Client) handler() {
@@ -29,8 +30,14 @@ fn (mut c Client) handler() {
 			c.last_responce = ticks()
 			continue
 		}
-		c.inp <- pacc2s_from_packet(p)
+
+		c.inp <- pacc2s_from_packet(p) or { continue }
 	}
 }
 
 const close_time = 20
+
+struct Player {
+mut:
+	info P4PlayerInfo
+}

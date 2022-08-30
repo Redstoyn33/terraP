@@ -1,15 +1,15 @@
 import time
 
 const (
-	server_update_rate = time.second/4
-	client_update_rate = time.second/4
+	server_update_rate = time.second / 4
+	client_update_rate = time.second / 4
 )
 
 struct Server {
 	new_client chan &Client = chan &Client{cap: 1}
 mut:
 	clients map[u8]&Client = map[u8]&Client{}
-	ids u8
+	ids     u8
 }
 
 fn (mut s Server) work() {
@@ -26,15 +26,20 @@ fn (mut s Server) work() {
 			}
 			else {}
 		}
-		for id, c in s.clients {
+		for id, mut c in s.clients {
 			if c.close {
 				s.clients.delete(id)
 				continue
 			}
 			select {
 				p := <-c.inp {
-					if p is PConnectRequest {
-						c.out <- PDisconnect{'you num $id, len $s.clients.len'}
+					match p {
+						P1ConnectRequest {
+							c.out <- P3SetUserSlot{id}
+						}
+						P4PlayerInfo {
+							c.player.info = p
+						}
 					}
 				}
 				else {}
